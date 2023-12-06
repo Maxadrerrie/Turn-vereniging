@@ -37,28 +37,24 @@
 <body>
 
 <?php
-// Database connection details
 $servername = "localhost";
 $username = "root";
 $password = "";
 $dbname = "turnen";
 
-// Create connection
 $conn = new mysqli($servername, $username, $password, $dbname);
 
-// Check connection
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// Fetch divisions for filter
 $divisionsResult = $conn->query("SELECT * FROM divisies");
 ?>
 
 <form method="post" action="">
-    <label for="division">Select Division:</label>
+    <label for="division">Selecteer divisies:</label>
     <select name="division" id="division">
-        <option value="">All Divisions</option>
+        <option value="">Alle Divisies</option>
         <?php
         while ($division = $divisionsResult->fetch_assoc()) {
             echo "<option value='" . $division['id'] . "'>" . $division['naam'] . "</option>";
@@ -70,9 +66,9 @@ $divisionsResult = $conn->query("SELECT * FROM divisies");
 
 <table>
     <tr>
-        <th>Name</th>
-        <th>Division</th>
-        <th>Action</th>
+        <th>Naam</th>
+        <th>Divisie</th>
+        <th>Acties</th>
     </tr>
 
     <?php
@@ -90,7 +86,7 @@ $divisionsResult = $conn->query("SELECT * FROM divisies");
         echo "<tr>";
         echo "<td>" . $row['name'] . "</td>";
         echo "<td>" . $row['divisies_id'] . "</td>";
-        echo "<td><a href='assign_points.php?participant_id=" . $row['id'] . "'>Assign Points</a></td>";
+        echo "<td><a href='assign_points.php?participant_id=" . $row['id'] . "'>Punten Toekennen</a></td>";
         echo "</tr>";
     }
 

@@ -69,6 +69,12 @@
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
+
+        .score-exists {
+            text-align: center;
+            color: #ff0000;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
@@ -100,34 +106,24 @@ function getPreviousScore($conn, $participantId) {
         $row = $result->fetch_assoc();
         return $row;
     } else {
-        return "No previous score available";
+        return "Geen vorige score verkrijgbaar";
     }
 }
 
-// Handle form submission for updating previous score
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_score'])) {
-    $participantId = $_POST['participant_id'];
-    $updatedDPoints = $_POST['updated_d_points'];
-    $updatedEPoints = $_POST['updated_e_points'];
-    $updatedPenaltyPoints = $_POST['updated_penalty_points'];
-
-    $updatedTotalPoints = $updatedDPoints + $updatedEPoints - $updatedPenaltyPoints;
-
-    // Update the previous score in the database
-    $updateQuery = "UPDATE points SET d_points = '$updatedDPoints', e_points = '$updatedEPoints', penalty_points = '$updatedPenaltyPoints', total_points = '$updatedTotalPoints' WHERE deelnemers_id = '$participantId'";
-    if ($conn->query($updateQuery) === TRUE) {
-        echo "Previous score updated successfully.";
-    } else {
-        echo "Error updating previous score: " . $conn->error;
-    }
-}
-
-$previousScore = getPreviousScore($conn, $_GET['participant_id']);
+// Check if a previous score already exists
+$checkScoreQuery = "SELECT deelnemers_id FROM points WHERE deelnemers_id = '{$_GET['participant_id']}' LIMIT 1";
+$checkScoreResult = $conn->query($checkScoreQuery);
+$scoreExists = $checkScoreResult->num_rows > 0;
 ?>
 
 <!-- Assign Points Form -->
 <form method="post" action="">
     <h1>Punten toekennen</h1>
+    <?php if ($scoreExists) : ?>
+    <div class="score-exists">
+        <p>Er is al een score opgeslagen voor deze deelnemer.</p>
+    </div>
+<?php endif; ?>
     <input type="hidden" name="participant_id" value="<?php echo $_GET['participant_id']; ?>">
     <label for="d_points">D Points:</label>
     <input type="text" name="d_points" required>
@@ -139,23 +135,23 @@ $previousScore = getPreviousScore($conn, $_GET['participant_id']);
 </form>
 
 <!-- Update Score Form -->
-    <form method="post" action="">
+<form method="post" action="">
     <h1>Update vorige score</h1>
-        <input type="hidden" name="participant_id" value="<?php echo $_GET['participant_id']; ?>">
-        <label for="updated_d_points">Updated D Points:</label>
-        <input type="text" name="updated_d_points" required>
-        <label for="updated_e_points">Updated E Points:</label>
-        <input type="text" name="updated_e_points" required>
-        <label for="updated_penalty_points">Updated Penalty Points:</label>
-        <input type="text" name="updated_penalty_points" required>
-        <button type="submit" name="update_score">Update Score</button>
-    </form>
-</div>
+    <input type="hidden" name="participant_id" value="<?php echo $_GET['participant_id']; ?>">
+    <label for="updated_d_points">Updated D Points:</label>
+    <input type="text" name="updated_d_points" required>
+    <label for="updated_e_points">Updated E Points:</label>
+    <input type="text" name="updated_e_points" required>
+    <label for="updated_penalty_points">Updated Penalty Points:</label>
+    <input type="text" name="updated_penalty_points" required>
+    <button type="submit" name="update_score">Update Score</button>
+</form>
 
 <!-- Display Previous Score -->
 <div class="previous-score">
     <h1>Vorige score</h1>
     <?php
+    $previousScore = getPreviousScore($conn, $_GET['participant_id']);
     if (is_array($previousScore)) {
         echo "<p>D Points: {$previousScore['d_points']}</p>";
         echo "<p>E Points: {$previousScore['e_points']}</p>";
