@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Assign Points</title>
     <style>
-        body {
+          body {
             font-family: 'Arial', sans-serif;
             margin: 20px;
             background-color: #f4f4f4;
@@ -86,6 +86,22 @@
             text-align: center;
             margin-bottom: 20px;
         }
+        .score-doesnt {
+            text-align: center;
+            color: red;
+            margin-top: 20px;
+        }
+
+        .score-exists {
+            text-align: center;
+            color: green;
+            margin-top: 20px;
+        }
+
+        .participant-info {
+            text-align: center;
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
@@ -121,6 +137,34 @@ function getPreviousScore($conn, $participantId) {
 $checkScoreQuery = "SELECT deelnemers_id FROM points WHERE deelnemers_id = '{$_GET['participant_id']}' LIMIT 1";
 $checkScoreResult = $conn->query($checkScoreQuery);
 $scoreExists = $checkScoreResult->num_rows > 0;
+
+// Process Assign Points Form Submission
+if ($_SERVER["REQUEST_METHOD"] == "POST" && !isset($_POST['update_score'])) {
+    $participantId = $_POST['participant_id'];
+    $dPoints = $_POST['d_points'];
+    $ePoints = $_POST['e_points'];
+    $penaltyPoints = $_POST['penalty_points'];
+    $totalPoints = $dPoints + $ePoints - $penaltyPoints;
+
+    $insertQuery = "INSERT INTO points (deelnemers_id, d_points, e_points, penalty_points, total_points)
+                    VALUES ('$participantId', '$dPoints', '$ePoints', '$penaltyPoints', '$totalPoints')";
+}
+
+// Process Update Score Form Submission
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_score'])) {
+    $participantId = $_POST['participant_id'];
+    $updatedDPoints = $_POST['updated_d_points'];
+    $updatedEPoints = $_POST['updated_e_points'];
+    $updatedPenaltyPoints = $_POST['updated_penalty_points'];
+    $updatedTotalPoints = $updatedDPoints + $updatedEPoints - $updatedPenaltyPoints;
+
+    $updateQuery = "UPDATE points
+                    SET d_points = '$updatedDPoints',
+                        e_points = '$updatedEPoints',
+                        penalty_points = '$updatedPenaltyPoints',
+                        total_points = '$updatedTotalPoints'
+                    WHERE deelnemers_id = '$participantId'";
+}
 ?>
 
 <!-- Display participant info -->
