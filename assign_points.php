@@ -119,8 +119,11 @@ if ($conn->connect_error) {
 }
 
 function getPreviousScore($conn, $participantId) {
-    $query = "SELECT d_points, e_points, penalty_points, total_points FROM points WHERE deelnemers_id = '$participantId' LIMIT 1";
-    $result = $conn->query($query);
+    $query = "SELECT d_points, e_points, penalty_points, total_points FROM points WHERE deelnemers_id = ? LIMIT 1";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("s", $participantId);
+    $stmt->execute();
+    $result = $stmt->get_result();
 
     if ($result === FALSE) {
         die("Error in query: " . $conn->error);
@@ -134,9 +137,11 @@ function getPreviousScore($conn, $participantId) {
     }
 }
 
-$checkScoreQuery = "SELECT deelnemers_id FROM points WHERE deelnemers_id = '{$_GET['participant_id']}' LIMIT 1";
-$checkScoreResult = $conn->query($checkScoreQuery);
-$scoreExists = $checkScoreResult->num_rows > 0;
+$checkScoreQuery = "SELECT deelnemers_id FROM points WHERE deelnemers_id = ? LIMIT 1";
+$checkScoreResult = $conn->prepare($checkScoreQuery);
+$checkScoreResult->bind_param("s", $_GET['participant_id']);
+$checkScoreResult->execute();
+$scoreExists = $checkScoreResult->get_result()->num_rows > 0;
 
 // Process Assign Points Form Submission
 if ($_SERVER["REQUEST_METHOD"] == "POST" && !isset($_POST['update_score'])) {
@@ -147,7 +152,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && !isset($_POST['update_score'])) {
     $totalPoints = $dPoints + $ePoints - $penaltyPoints;
 
     $insertQuery = "INSERT INTO points (deelnemers_id, d_points, e_points, penalty_points, total_points)
-                    VALUES ('$participantId', '$dPoints', '$ePoints', '$penaltyPoints', '$totalPoints')";
+                    VALUES (?, ?, ?, ?, ?)";
+    $stmt = $conn->prepare($insertQuery);
+    $stmt->bind_param("sssss", $participantId, $dPoints, $ePoints, $penaltyPoints, $totalPoints);
+    $stmt->execute();
 }
 
 // Process Update Score Form Submission
@@ -159,11 +167,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_score'])) {
     $updatedTotalPoints = $updatedDPoints + $updatedEPoints - $updatedPenaltyPoints;
 
     $updateQuery = "UPDATE points
-                    SET d_points = '$updatedDPoints',
-                        e_points = '$updatedEPoints',
-                        penalty_points = '$updatedPenaltyPoints',
-                        total_points = '$updatedTotalPoints'
-                    WHERE deelnemers_id = '$participantId'";
+                    SET d_points = ?,
+                        e_points = ?,
+                        penalty_points = ?,
+                        total_points = ?
+                    WHERE deelnemers_id = ?";
+    $stmt = $conn->prepare($updateQuery);
+    $stmt->bind_param("sssss", $updatedDPoints, $updatedEPoints, $updatedPenaltyPoints, $updatedTotalPoints, $participantId);
+    $stmt->execute();
 }
 ?>
 
@@ -172,8 +183,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_score'])) {
     <?php
     // Fetch the person's name based on the user ID
     $participantId = $_GET['participant_id'];
-    $nameQuery = "SELECT name FROM deelnemers WHERE id = '$participantId' LIMIT 1";
-    $nameResult = $conn->query($nameQuery);
+    $nameQuery = "SELECT name FROM deelnemers WHERE id = ? LIMIT 1";
+    $stmt = $conn->prepare($nameQuery);
+    $stmt->bind_param("s", $participantId);
+    $stmt->execute();
+    $nameResult = $stmt->get_result();
 
     if ($nameResult && $nameResult->num_rows > 0) {
         $row = $nameResult->fetch_assoc();
@@ -197,7 +211,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_score'])) {
             <p>Er is nog geen score opgeslagen voor deze deelnemer.</p>
         </div>
     <?php endif; ?>
-    <input type="hidden" name="participant_id" value="<?php echo $_GET['participant_id']; ?>">
+    <input type="hidden" name="participant_id" value="<?php echo htmlspecialchars($_GET['participant_id']); ?>">
     <label for="d_points">D Punten:</label>
     <input type="text" name="d_points" <?php echo $scoreExists ? 'disabled' : 'required'; ?>>
     <label for="e_points">E Punten:</label>
@@ -210,7 +224,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_score'])) {
 <!-- Update Score Form -->
 <form method="post" action="">
     <h1>Update vorige score</h1>
-    <input type="hidden" name="participant_id" value="<?php echo $_GET['participant_id']; ?>">
+    <input type="hidden" name="participant_id" value="<?php echo htmlspecialchars($_GET['participant_id']); ?>">
     <label for="updated_d_points">Updated D Punten:</label>
     <input type="text" name="updated_d_points" required>
     <label for="updated_e_points">Updated E Punten:</label>
@@ -226,12 +240,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_score'])) {
     <?php
     $previousScore = getPreviousScore($conn, $_GET['participant_id']);
     if (is_array($previousScore)) {
-        echo "<p>D Punten: {$previousScore['d_points']}</p>";
-        echo "<p>E Punten: {$previousScore['e_points']}</p>";
-        echo "<p>Penalty Punten: {$previousScore['penalty_points']}</p>";
-        echo "<p>Totaal Aantal Punten: {$previousScore['total_points']}</p>";
+        echo "<p>D Punten: " . htmlspecialchars($previousScore['d_points']) . "</p>";
+        echo "<p>E Punten: " . htmlspecialchars($previousScore['e_points']) . "</p>";
+        echo "<p>Penalty Punten: " . htmlspecialchars($previousScore['penalty_points']) . "</p>";
+        echo "<p>Totaal Aantal Punten: " . htmlspecialchars($previousScore['total_points']) . "</p>";
     } else {
-        echo "<p>{$previousScore}</p>";
+        echo "<p>" . htmlspecialchars($previousScore) . "</p>";
     }
     ?>
 </div>
