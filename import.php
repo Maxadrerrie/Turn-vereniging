@@ -1,4 +1,5 @@
 <?php
+
 $csvFilePath = 'example.csv';
 
 // Open the CSV file for reading
