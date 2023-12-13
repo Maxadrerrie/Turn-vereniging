@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Assign Points</title>
     <style>
-        body {
+          body {
             font-family: 'Arial', sans-serif;
             margin: 20px;
             background-color: #f4f4f4;
@@ -70,33 +70,60 @@
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
 
+        .score-doesnt {
+            text-align: center;
+            color: red;
+            margin-top: 20px;
+        }
+
         .score-exists {
             text-align: center;
-            color: #ff0000;
+            color: green;
             margin-top: 20px;
+        }
+
+        .participant-info {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .score-doesnt {
+            text-align: center;
+            color: red;
+            margin-top: 20px;
+        }
+
+        .score-exists {
+            text-align: center;
+            color: green;
+            margin-top: 20px;
+        }
+
+        .participant-info {
+            text-align: center;
+            margin-bottom: 20px;
         }
     </style>
 </head>
 <body>
 
 <?php
-// Database connection details
 $servername = "localhost";
 $username = "root";
 $password = "";
 $dbname = "turnen";
 
-// Create connection
 $conn = new mysqli($servername, $username, $password, $dbname);
 
-// Check connection
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
 function getPreviousScore($conn, $participantId) {
-    $query = "SELECT d_points, e_points, penalty_points, total_points FROM points WHERE deelnemers_id = '$participantId' LIMIT 1";
-    $result = $conn->query($query);
+    $query = "SELECT d_points, e_points, penalty_points, total_points FROM points WHERE deelnemers_id = ? LIMIT 1";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("s", $participantId);
+    $stmt->execute();
+    $result = $stmt->get_result();
 
     if ($result === FALSE) {
         die("Error in query: " . $conn->error);
@@ -110,39 +137,99 @@ function getPreviousScore($conn, $participantId) {
     }
 }
 
-// Check if a previous score already exists
-$checkScoreQuery = "SELECT deelnemers_id FROM points WHERE deelnemers_id = '{$_GET['participant_id']}' LIMIT 1";
-$checkScoreResult = $conn->query($checkScoreQuery);
-$scoreExists = $checkScoreResult->num_rows > 0;
+$checkScoreQuery = "SELECT deelnemers_id FROM points WHERE deelnemers_id = ? LIMIT 1";
+$checkScoreResult = $conn->prepare($checkScoreQuery);
+$checkScoreResult->bind_param("s", $_GET['participant_id']);
+$checkScoreResult->execute();
+$scoreExists = $checkScoreResult->get_result()->num_rows > 0;
+
+// Process Assign Points Form Submission
+if ($_SERVER["REQUEST_METHOD"] == "POST" && !isset($_POST['update_score'])) {
+    $participantId = $_POST['participant_id'];
+    $dPoints = $_POST['d_points'];
+    $ePoints = $_POST['e_points'];
+    $penaltyPoints = $_POST['penalty_points'];
+    $totalPoints = $dPoints + $ePoints - $penaltyPoints;
+
+    $insertQuery = "INSERT INTO points (deelnemers_id, d_points, e_points, penalty_points, total_points)
+                    VALUES (?, ?, ?, ?, ?)";
+    $stmt = $conn->prepare($insertQuery);
+    $stmt->bind_param("sssss", $participantId, $dPoints, $ePoints, $penaltyPoints, $totalPoints);
+    $stmt->execute();
+}
+
+// Process Update Score Form Submission
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_score'])) {
+    $participantId = $_POST['participant_id'];
+    $updatedDPoints = $_POST['updated_d_points'];
+    $updatedEPoints = $_POST['updated_e_points'];
+    $updatedPenaltyPoints = $_POST['updated_penalty_points'];
+    $updatedTotalPoints = $updatedDPoints + $updatedEPoints - $updatedPenaltyPoints;
+
+    $updateQuery = "UPDATE points
+                    SET d_points = ?,
+                        e_points = ?,
+                        penalty_points = ?,
+                        total_points = ?
+                    WHERE deelnemers_id = ?";
+    $stmt = $conn->prepare($updateQuery);
+    $stmt->bind_param("sssss", $updatedDPoints, $updatedEPoints, $updatedPenaltyPoints, $updatedTotalPoints, $participantId);
+    $stmt->execute();
+}
 ?>
+
+<!-- Display participant info -->
+<div class="participant-info">
+    <?php
+    // Fetch the person's name based on the user ID
+    $participantId = $_GET['participant_id'];
+    $nameQuery = "SELECT name FROM deelnemers WHERE id = ? LIMIT 1";
+    $stmt = $conn->prepare($nameQuery);
+    $stmt->bind_param("s", $participantId);
+    $stmt->execute();
+    $nameResult = $stmt->get_result();
+
+    if ($nameResult && $nameResult->num_rows > 0) {
+        $row = $nameResult->fetch_assoc();
+        $personName = $row['name'];
+        echo "<h2>Geselecteerde Deelnemer: $personName</h2>";
+    } else {
+        echo "<h2>Geselecteerde Deelnemer ID: $participantId</h2>";
+    }
+    ?>
+</div>
 
 <!-- Assign Points Form -->
 <form method="post" action="">
     <h1>Punten toekennen</h1>
     <?php if ($scoreExists) : ?>
-    <div class="score-exists">
-        <p>Er is al een score opgeslagen voor deze deelnemer.</p>
-    </div>
-<?php endif; ?>
-    <input type="hidden" name="participant_id" value="<?php echo $_GET['participant_id']; ?>">
-    <label for="d_points">D Points:</label>
-    <input type="text" name="d_points" required>
-    <label for="e_points">E Points:</label>
-    <input type="text" name="e_points" required>
-    <label for="penalty_points">Penalty Points:</label>
-    <input type="text" name="penalty_points" required>
-    <button type="submit">Assign Points</button>
+        <div class="score-doesnt">
+            <p>Er is al een score opgeslagen voor deze deelnemer.</p>
+        </div>
+    <?php else : ?>
+        <div class="score-exists">
+            <p>Er is nog geen score opgeslagen voor deze deelnemer.</p>
+        </div>
+    <?php endif; ?>
+    <input type="hidden" name="participant_id" value="<?php echo htmlspecialchars($_GET['participant_id']); ?>">
+    <label for="d_points">D Punten:</label>
+    <input type="text" name="d_points" <?php echo $scoreExists ? 'disabled' : 'required'; ?>>
+    <label for="e_points">E Punten:</label>
+    <input type="text" name="e_points" <?php echo $scoreExists ? 'disabled' : 'required'; ?>>
+    <label for="penalty_points">Penalty Punten:</label>
+    <input type="text" name="penalty_points" <?php echo $scoreExists ? 'disabled' : 'required'; ?>>
+    <button type="submit" <?php echo $scoreExists ? 'disabled' : ''; ?>>Assign Punten</button>
 </form>
 
 <!-- Update Score Form -->
 <form method="post" action="">
     <h1>Update vorige score</h1>
-    <input type="hidden" name="participant_id" value="<?php echo $_GET['participant_id']; ?>">
-    <label for="updated_d_points">Updated D Points:</label>
+    <input type="hidden" name="participant_id" value="<?php echo htmlspecialchars($_GET['participant_id']); ?>">
+    <label for="updated_d_points">Updated D Punten:</label>
     <input type="text" name="updated_d_points" required>
-    <label for="updated_e_points">Updated E Points:</label>
+    <label for="updated_e_points">Updated E Punten:</label>
     <input type="text" name="updated_e_points" required>
-    <label for="updated_penalty_points">Updated Penalty Points:</label>
+    <label for="updated_penalty_points">Updated Penalty Punten:</label>
     <input type="text" name="updated_penalty_points" required>
     <button type="submit" name="update_score">Update Score</button>
 </form>
@@ -153,12 +240,12 @@ $scoreExists = $checkScoreResult->num_rows > 0;
     <?php
     $previousScore = getPreviousScore($conn, $_GET['participant_id']);
     if (is_array($previousScore)) {
-        echo "<p>D Points: {$previousScore['d_points']}</p>";
-        echo "<p>E Points: {$previousScore['e_points']}</p>";
-        echo "<p>Penalty Points: {$previousScore['penalty_points']}</p>";
-        echo "<p>Total Points: {$previousScore['total_points']}</p>";
+        echo "<p>D Punten: " . htmlspecialchars($previousScore['d_points']) . "</p>";
+        echo "<p>E Punten: " . htmlspecialchars($previousScore['e_points']) . "</p>";
+        echo "<p>Penalty Punten: " . htmlspecialchars($previousScore['penalty_points']) . "</p>";
+        echo "<p>Totaal Aantal Punten: " . htmlspecialchars($previousScore['total_points']) . "</p>";
     } else {
-        echo "<p>{$previousScore}</p>";
+        echo "<p>" . htmlspecialchars($previousScore) . "</p>";
     }
     ?>
 </div>
