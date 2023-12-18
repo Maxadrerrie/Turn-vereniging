@@ -1,3 +1,71 @@
+<?php
+$servername = "localhost";
+$username = "root";
+$password = "";
+$dbname = "turnen";
+
+$conn = new mysqli($servername, $username, $password, $dbname);
+
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+
+function getPreviousScore($conn, $participantId) {
+    $query = "SELECT d_points, e_points, penalty_points FROM points WHERE deelnemers_id = ? LIMIT 1";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("s", $participantId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result === FALSE) {
+        die("Error in query: " . $conn->error);
+    }
+
+    if ($result->num_rows > 0) {
+        $row = $result->fetch_assoc();
+        return $row;
+    } else {
+        return "Geen vorige score verkrijgbaar";
+    }
+}
+
+$participantId = $_GET['participant_id'];
+
+// Process Update Score Form Submission
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_score'])) {
+    $oefeningId = $_POST['update_oefening_id'];
+    $updatedDPoints = $_POST['updated_d_points'];
+    $updatedEPoints = $_POST['updated_e_points'];
+    $updatedPenaltyPoints = $_POST['updated_penalty_points'];
+
+    // Check if a score exists for the participant
+    $checkScoreQuery = "SELECT deelnemers_id FROM points WHERE deelnemers_id = ? AND oefening_id = ? LIMIT 1";
+    $checkScoreResult = $conn->prepare($checkScoreQuery);
+    $checkScoreResult->bind_param("ss", $participantId, $oefeningId);
+    $checkScoreResult->execute();
+    $scoreExists = $checkScoreResult->get_result()->num_rows > 0;
+
+    if (!$scoreExists) {
+        // Insert a new score if it doesn't exist
+        $insertQuery = "INSERT INTO points (deelnemers_id, d_points, e_points, penalty_points, oefening_id)
+                        VALUES (?, ?, ?, ?, ?)";
+        $stmt = $conn->prepare($insertQuery);
+        $stmt->bind_param("sssss", $participantId, $updatedDPoints, $updatedEPoints, $updatedPenaltyPoints, $oefeningId);
+        $stmt->execute();
+    } else {
+        // Update the existing score
+        $updateQuery = "UPDATE points
+                        SET d_points = ?,
+                            e_points = ?,
+                            penalty_points = ?
+                        WHERE deelnemers_id = ? AND oefening_id = ?";
+        $stmt = $conn->prepare($updateQuery);
+        $stmt->bind_param("sssss", $updatedDPoints, $updatedEPoints, $updatedPenaltyPoints, $participantId, $oefeningId);
+        $stmt->execute();
+    }
+}
+
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,7 +73,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Assign Points</title>
     <style>
-          body {
+        body {
             font-family: 'Arial', sans-serif;
             margin: 20px;
             background-color: #f4f4f4;
@@ -21,12 +89,12 @@
             margin-bottom: 20px;
         }
 
-        label, input {
+        label, input, select {
             display: block;
             margin-bottom: 10px;
         }
 
-        input {
+        input, select {
             width: calc(100% - 22px);
             padding: 8px;
             border: 1px solid #ccc;
@@ -86,112 +154,9 @@
             text-align: center;
             margin-bottom: 20px;
         }
-        .score-doesnt {
-            text-align: center;
-            color: red;
-            margin-top: 20px;
-        }
-
-        .score-exists {
-            text-align: center;
-            color: green;
-            margin-top: 20px;
-        }
-
-        .participant-info {
-            text-align: center;
-            margin-bottom: 20px;
-        }
     </style>
 </head>
 <body>
-
-<?php
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "turnen";
-
-$conn = new mysqli($servername, $username, $password, $dbname);
-
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
-
-function getPreviousScore($conn, $participantId) {
-    $query = "SELECT d_points, e_points, penalty_points FROM points WHERE deelnemers_id = ? LIMIT 1";
-    $stmt = $conn->prepare($query);
-
-    if ($stmt === FALSE) {
-        die("Error in query preparation: " . $conn->error);
-    }
-
-    $stmt->bind_param("s", $participantId);
-    $stmt->execute();
-    $result = $stmt->get_result();
-
-    if ($result === FALSE) {
-        die("Error in query execution: " . $conn->error);
-    }
-
-    if ($result->num_rows > 0) {
-        $row = $result->fetch_assoc();
-
-        // Calculate total_points
-        $totalPoints = $row['d_points'] + $row['e_points'] - $row['penalty_points'];
-        $row['total_points'] = $totalPoints;
-
-        return $row;
-    } else {
-        return "Geen vorige score verkrijgbaar";
-    }
-}
-
-
-
-$checkScoreQuery = "SELECT deelnemers_id FROM points WHERE deelnemers_id = ? LIMIT 1";
-$checkScoreResult = $conn->prepare($checkScoreQuery);
-$checkScoreResult->bind_param("s", $_GET['participant_id']);
-$checkScoreResult->execute();
-$scoreExists = $checkScoreResult->get_result()->num_rows > 0;
-
-// Process Assign Points Form Submission
-if ($_SERVER["REQUEST_METHOD"] == "POST" && !isset($_POST['update_score'])) {
-    $participantId = $_POST['participant_id'];
-    $dPoints = $_POST['d_points'];
-    $ePoints = $_POST['e_points'];
-    $penaltyPoints = $_POST['penalty_points'];
-    $totalPoints = $dPoints + $ePoints - $penaltyPoints;
-
-    $insertQuery = "INSERT INTO points (deelnemers_id, d_points, e_points, penalty_points, total_points)
-                    VALUES (?, ?, ?, ?, ?)";
-    $stmt = $conn->prepare($insertQuery);
-    $stmt->bind_param("sssss", $participantId, $dPoints, $ePoints, $penaltyPoints, $totalPoints);
-    $stmt->execute();
-}
-
-// Process Update Score Form Submission
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_score'])) {
-    $participantId = $_POST['participant_id'];
-    $updatedDPoints = $_POST['updated_d_points'];
-    $updatedEPoints = $_POST['updated_e_points'];
-    $updatedPenaltyPoints = $_POST['updated_penalty_points'];
-    $updatedTotalPoints = $updatedDPoints + $updatedEPoints - $updatedPenaltyPoints;
-
-    $updateQuery = "UPDATE points
-                    SET d_points = ?,
-                        e_points = ?,
-                        penalty_points = ?,
-                        total_points = ?
-                    WHERE deelnemers_id = ?";
-    $stmt = $conn->prepare($updateQuery);
-    $stmt->bind_param("sssss", $updatedDPoints, $updatedEPoints, $updatedPenaltyPoints, $updatedTotalPoints, $participantId);
-    $stmt->execute();
-}
-?>
-
-<!-- Rest of the HTML remains unchanged -->
-
 
 <!-- Display participant info -->
 <div class="participant-info">
@@ -214,32 +179,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_score'])) {
     ?>
 </div>
 
-<!-- Assign Points Form -->
-<form method="post" action="">
-    <h1>Punten toekennen</h1>
-    <?php if ($scoreExists) : ?>
-        <div class="score-doesnt">
-            <p>Er is al een score opgeslagen voor deze deelnemer.</p>
-        </div>
-    <?php else : ?>
-        <div class="score-exists">
-            <p>Er is nog geen score opgeslagen voor deze deelnemer.</p>
-        </div>
-    <?php endif; ?>
-    <input type="hidden" name="participant_id" value="<?php echo htmlspecialchars($_GET['participant_id']); ?>">
-    <label for="d_points">D Punten:</label>
-    <input type="text" name="d_points" <?php echo $scoreExists ? 'disabled' : 'required'; ?>>
-    <label for="e_points">E Punten:</label>
-    <input type="text" name="e_points" <?php echo $scoreExists ? 'disabled' : 'required'; ?>>
-    <label for="penalty_points">Penalty Punten:</label>
-    <input type="text" name="penalty_points" <?php echo $scoreExists ? 'disabled' : 'required'; ?>>
-    <button type="submit" <?php echo $scoreExists ? 'disabled' : ''; ?>>Assign Punten</button>
-</form>
-
 <!-- Update Score Form -->
 <form method="post" action="">
     <h1>Update vorige score</h1>
     <input type="hidden" name="participant_id" value="<?php echo htmlspecialchars($_GET['participant_id']); ?>">
+    <label for="update_oefening_id">Selecteer Oefening:</label>
+    <select name="update_oefening_id">
+        <?php
+        // Fetch oefeningen from the database
+        $oefeningQuery = "SELECT id, name FROM oefening";
+        $oefeningResult = $conn->query($oefeningQuery);
+
+        if ($oefeningResult && $oefeningResult->num_rows > 0) {
+            while ($oefeningRow = $oefeningResult->fetch_assoc()) {
+                echo "<option value='{$oefeningRow['id']}'>{$oefeningRow['name']}</option>";
+            }
+        }
+        ?>
+    </select>
     <label for="updated_d_points">Updated D Punten:</label>
     <input type="text" name="updated_d_points" required>
     <label for="updated_e_points">Updated E Punten:</label>
@@ -258,7 +215,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_score'])) {
         echo "<p>D Punten: " . htmlspecialchars($previousScore['d_points']) . "</p>";
         echo "<p>E Punten: " . htmlspecialchars($previousScore['e_points']) . "</p>";
         echo "<p>Penalty Punten: " . htmlspecialchars($previousScore['penalty_points']) . "</p>";
-        echo "<p>Totaal Aantal Punten: " . htmlspecialchars($previousScore['total_points']) . "</p>";
+        echo "<p>Totaal Aantal Punten: " . ($previousScore['d_points'] + $previousScore['e_points'] - $previousScore['penalty_points']) . "</p>";
     } else {
         echo "<p>" . htmlspecialchars($previousScore) . "</p>";
     }
