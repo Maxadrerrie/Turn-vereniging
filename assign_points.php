@@ -119,23 +119,35 @@ if ($conn->connect_error) {
 }
 
 function getPreviousScore($conn, $participantId) {
-    $query = "SELECT d_points, e_points, penalty_points, total_points FROM points WHERE deelnemers_id = ? LIMIT 1";
+    $query = "SELECT d_points, e_points, penalty_points FROM points WHERE deelnemers_id = ? LIMIT 1";
     $stmt = $conn->prepare($query);
+
+    if ($stmt === FALSE) {
+        die("Error in query preparation: " . $conn->error);
+    }
+
     $stmt->bind_param("s", $participantId);
     $stmt->execute();
     $result = $stmt->get_result();
 
     if ($result === FALSE) {
-        die("Error in query: " . $conn->error);
+        die("Error in query execution: " . $conn->error);
     }
 
     if ($result->num_rows > 0) {
         $row = $result->fetch_assoc();
+
+        // Calculate total_points
+        $totalPoints = $row['d_points'] + $row['e_points'] - $row['penalty_points'];
+        $row['total_points'] = $totalPoints;
+
         return $row;
     } else {
         return "Geen vorige score verkrijgbaar";
     }
 }
+
+
 
 $checkScoreQuery = "SELECT deelnemers_id FROM points WHERE deelnemers_id = ? LIMIT 1";
 $checkScoreResult = $conn->prepare($checkScoreQuery);
@@ -177,6 +189,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_score'])) {
     $stmt->execute();
 }
 ?>
+
+<!-- Rest of the HTML remains unchanged -->
+
 
 <!-- Display participant info -->
 <div class="participant-info">
