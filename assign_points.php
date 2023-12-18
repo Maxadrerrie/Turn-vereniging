@@ -64,7 +64,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_score'])) {
         $stmt->execute();
     }
 }
+// Fetch the maximum participant_id from the database
+$maxParticipantIdQuery = "SELECT MAX(id) AS max_id FROM deelnemers";
+$maxParticipantIdResult = $conn->query($maxParticipantIdQuery);
 
+if ($maxParticipantIdResult && $maxParticipantIdResult->num_rows > 0) {
+    $maxParticipantIdRow = $maxParticipantIdResult->fetch_assoc();
+    $maxParticipantId = $maxParticipantIdRow['max_id'];
+} else {
+    // Default to a value if no records are found
+    $maxParticipantId = 1;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -157,6 +167,28 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_score'])) {
     </style>
 </head>
 <body>
+<script>
+    var maxParticipantId = <?php echo json_encode($maxParticipantId); ?>;
+    
+    function updateNextParticipantId() {
+      // Get the current participant_id from the URL
+      var currentParticipantId = <?php echo json_encode($_GET['participant_id']); ?>;
+      
+      // Increment the participant_id
+      var nextParticipantId = parseInt(currentParticipantId) + 1;
+
+      // If the next ID exceeds the maximum, loop back to the beginning
+      if (nextParticipantId > maxParticipantId) {
+        window.location.href = 'http://localhost/Turn-vereniging/juryinput.php';
+      } else {
+      
+      // Update the form action with the new participant_id
+      document.querySelector('form').action = '?participant_id=' + nextParticipantId;
+      
+      return true; // Allow the form submission to proceed
+    }
+   }
+</script>
 
 <!-- Display participant info -->
 <div class="participant-info">
@@ -180,7 +212,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_score'])) {
 </div>
 
 <!-- Update Score Form -->
-<form method="post" action="">
+<form method="post" action="" onsubmit="return updateNextParticipantId()">
     <h1>Update vorige score</h1>
     <input type="hidden" name="participant_id" value="<?php echo htmlspecialchars($_GET['participant_id']); ?>">
     <label for="update_oefening_id">Selecteer Oefening:</label>
@@ -203,6 +235,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_score'])) {
     <input type="text" name="updated_e_points" required>
     <label for="updated_penalty_points">Updated Penalty Punten:</label>
     <input type="text" name="updated_penalty_points" required>
+    <input type="hidden" name="participant_id" value="<?php echo htmlspecialchars($_GET['participant_id'] + 1); ?>">
     <button type="submit" name="update_score">Update Score</button>
 </form>
 
