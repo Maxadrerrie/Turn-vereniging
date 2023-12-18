@@ -11,10 +11,11 @@ if ($conn->connect_error) {
 }
 
 function getAllScores($conn) {
-    $query = "SELECT deelnemers.name, points.d_points, points.e_points, points.penalty_points, points.total_points
+    $query = "SELECT deelnemers.name, points.d_points, points.e_points, points.penalty_points, 
+                     (points.d_points + points.e_points - points.penalty_points) as total_points
               FROM deelnemers
               JOIN points ON deelnemers.id = points.deelnemers_id
-              ORDER BY points.total_points DESC";
+              ORDER BY total_points DESC";
 
     $result = $conn->query($query);
 
@@ -29,6 +30,7 @@ function getAllScores($conn) {
 
     return $scores;
 }
+
 
 $scores = getAllScores($conn);
 ?>

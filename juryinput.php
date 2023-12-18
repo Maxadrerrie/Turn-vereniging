@@ -61,7 +61,19 @@ $divisionsResult = $conn->query("SELECT * FROM divisies");
         }
         ?>
     </select>
-    <button type="submit">Filter</button>
+
+    <label for="competition">Selecteer wedstrijd:</label>
+    <select name="competition" id="competition">
+        <option value="">Alle Wedstrijden</option>
+        <?php
+        $competitionsResult = $conn->query("SELECT * FROM wedstrijden");
+        while ($competition = $competitionsResult->fetch_assoc()) {
+            echo "<option value='" . $competition['id'] . "'>" . $competition['Naam'] . "</option>";
+        }
+        ?>
+    </select>
+
+    <button type="submit" name="filter">Filter</button>
 </form>
 
 <table>
@@ -73,9 +85,14 @@ $divisionsResult = $conn->query("SELECT * FROM divisies");
 
     <?php
     // Handle the form submission
-    if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    if (isset($_POST['filter'])) {
         $selectedDivision = $_POST['division'];
-        $sql = "SELECT * FROM deelnemers WHERE '$selectedDivision' = '' OR '$selectedDivision' = divisies_id";
+        $selectedCompetition = $_POST['competition'];
+        $sql = "SELECT deelnemers.name, deelnemers.divisies_id
+                FROM deelnemers
+                JOIN wedstrijden_has_deelnemers ON deelnemers.id = wedstrijden_has_deelnemers.deelnemers_id
+                WHERE ('$selectedDivision' = '' OR '$selectedDivision' = deelnemers.divisies_id)
+                    AND ('$selectedCompetition' = '' OR '$selectedCompetition' = wedstrijden_has_deelnemers.wedstrijden_id)";
     } else {
         $sql = "SELECT * FROM deelnemers";
     }
