@@ -37,6 +37,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_score'])) {
     $updatedDPoints = $_POST['updated_d_points'];
     $updatedEPoints = $_POST['updated_e_points'];
     $updatedPenaltyPoints = $_POST['updated_penalty_points'];
+    $participantId = $_POST['participant_id'];
 
     // Check if a score exists for the participant
     $checkScoreQuery = "SELECT deelnemers_id FROM points WHERE deelnemers_id = ? AND oefening_id = ? LIMIT 1";
@@ -171,23 +172,25 @@ if ($maxParticipantIdResult && $maxParticipantIdResult->num_rows > 0) {
     var maxParticipantId = <?php echo json_encode($maxParticipantId); ?>;
     
     function updateNextParticipantId() {
-      // Get the current participant_id from the URL
-      var currentParticipantId = <?php echo json_encode($_GET['participant_id']); ?>;
-      
-      // Increment the participant_id
-      var nextParticipantId = parseInt(currentParticipantId) + 1;
+        // Get the current participant_id from the URL
+        var currentParticipantId = <?php echo json_encode($_GET['participant_id']); ?>;
+        
+        // Increment the participant_id
+        var nextParticipantId = parseInt(currentParticipantId) + 1;
 
-      // If the next ID exceeds the maximum, loop back to the beginning
-      if (nextParticipantId > maxParticipantId) {
-        window.location.href = 'http://localhost/Turn-vereniging/juryinput.php';
-      } else {
-      
-      // Update the form action with the new participant_id
-      document.querySelector('form').action = '?participant_id=' + nextParticipantId;
-      
-      return true; // Allow the form submission to proceed
+        // If the next ID exceeds the maximum, loop back to the beginning
+        if (nextParticipantId > maxParticipantId) {
+            window.location.href = 'http://localhost/Turn-vereniging/juryinput.php';
+        } else {
+            // Update the form action with the new participant_id
+            document.querySelector('form').action = '?participant_id=' + nextParticipantId;
+
+            // Update the hidden input field with the new participant_id
+            document.querySelector('input[name="participant_id"]').value = nextParticipantId;
+            
+            return true; // Allow the form submission to proceed
+        }
     }
-   }
 </script>
 
 <!-- Display participant info -->
@@ -235,7 +238,7 @@ if ($maxParticipantIdResult && $maxParticipantIdResult->num_rows > 0) {
     <input type="text" name="updated_e_points" required>
     <label for="updated_penalty_points">Updated Penalty Punten:</label>
     <input type="text" name="updated_penalty_points" required>
-    <input type="hidden" name="participant_id" value="<?php echo htmlspecialchars($_GET['participant_id'] + 1); ?>">
+    <input type="hidden" name="participant_id" value="<?php echo htmlspecialchars($_GET['participant_id']); ?>">
     <button type="submit" name="update_score">Update Score</button>
 </form>
 
