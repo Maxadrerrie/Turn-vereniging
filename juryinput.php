@@ -66,7 +66,7 @@ $competitionsResult = $conn->query("SELECT * FROM wedstrijden");
 <table>
     <tr>
         <th>Naam</th>
-        <th>Divisie</th>
+        <th>Geslacht</th>
         <th>Acties</th>
     </tr>
 
