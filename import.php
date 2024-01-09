@@ -9,6 +9,7 @@ if ($file === false) {
     die('Failed to open the file.');
 }
 
+
 // Initialize an empty array to store the CSV data
 $csvData = [];
 

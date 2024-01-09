@@ -58,6 +58,7 @@ function getAllUsers($conn, $geslacht = null) {
     return $scores;
 }
 
+
 if (isset($_POST['create'])) {
     // Get the selected checkboxes values
     $selectedCheckboxes = isset($_POST['selectedCheckboxes']) ? json_decode($_POST['selectedCheckboxes'], true) : array();
