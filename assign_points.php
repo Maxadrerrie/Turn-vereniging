@@ -79,102 +79,108 @@ if ($maxParticipantIdResult && $maxParticipantIdResult->num_rows > 0) {
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Assign Points</title>
     <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            margin: 20px;
-            background-color: #f4f4f4;
-        }
+    body {
+        font-family: 'Arial', sans-serif;
+        margin: 20px;
+        background-color: #f4f4f4;
+    }
 
-        form {
-            width: 50%;
-            margin: 0 auto;
-            background-color: #ffffff;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-        }
+    form {
+        width: 50%;
+        margin: 0 auto;
+        background-color: #ffffff;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+    }
 
-        label, input, select {
-            display: block;
-            margin-bottom: 10px;
-        }
+    label,
+    input,
+    select {
+        display: block;
+        margin-bottom: 10px;
+    }
 
-        input, select {
-            width: calc(100% - 22px);
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
+    input,
+    select {
+        width: calc(100% - 22px);
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+    }
 
-        button {
-            background-color: #4caf50;
-            color: white;
-            padding: 10px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
+    button {
+        background-color: #4caf50;
+        color: white;
+        padding: 10px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
 
-        button:hover {
-            background-color: #45a049;
-        }
+    button:hover {
+        background-color: #45a049;
+    }
 
-        h1, h2 {
-            text-align: center;
-            color: #333333;
-        }
+    h1,
+    h2 {
+        text-align: center;
+        color: #333333;
+    }
 
-        .previous-score {
-            text-align: center;
-            color: #555555;
-            margin-top: 20px;
-        }
+    .previous-score {
+        text-align: center;
+        color: #555555;
+        margin-top: 20px;
+    }
 
-        .previous-score p {
-            margin-bottom: 5px;
-        }
+    .previous-score p {
+        margin-bottom: 5px;
+    }
 
-        .update-score-form {
-            width: 50%;
-            margin: 0 auto;
-            background-color: #ffffff;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
+    .update-score-form {
+        width: 50%;
+        margin: 0 auto;
+        background-color: #ffffff;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
 
-        .score-doesnt {
-            text-align: center;
-            color: red;
-            margin-top: 20px;
-        }
+    .score-doesnt {
+        text-align: center;
+        color: red;
+        margin-top: 20px;
+    }
 
-        .score-exists {
-            text-align: center;
-            color: green;
-            margin-top: 20px;
-        }
+    .score-exists {
+        text-align: center;
+        color: green;
+        margin-top: 20px;
+    }
 
-        .participant-info {
-            text-align: center;
-            margin-bottom: 20px;
-        }
+    .participant-info {
+        text-align: center;
+        margin-bottom: 20px;
+    }
     </style>
 </head>
+
 <body>
-<script>
+    <script>
     var maxParticipantId = <?php echo json_encode($maxParticipantId); ?>;
-    
+
     function updateNextParticipantId() {
         // Get the current participant_id from the URL
         var currentParticipantId = <?php echo json_encode($_GET['participant_id']); ?>;
-        
+
         // Increment the participant_id
         var nextParticipantId = parseInt(currentParticipantId) + 1;
 
@@ -187,15 +193,15 @@ if ($maxParticipantIdResult && $maxParticipantIdResult->num_rows > 0) {
 
             // Update the hidden input field with the new participant_id
             document.querySelector('input[name="participant_id"]').value = nextParticipantId;
-            
+
             return true; // Allow the form submission to proceed
         }
     }
-</script>
+    </script>
 
-<!-- Display participant info -->
-<div class="participant-info">
-    <?php
+    <!-- Display participant info -->
+    <div class="participant-info">
+        <?php
     // Fetch the person's name based on the user ID
     $participantId = $_GET['participant_id'];
     $nameQuery = "SELECT name FROM deelnemers WHERE id = ? LIMIT 1";
@@ -212,40 +218,55 @@ if ($maxParticipantIdResult && $maxParticipantIdResult->num_rows > 0) {
         echo "<h2>Geselecteerde Deelnemer ID: $participantId</h2>";
     }
     ?>
-</div>
+    </div>
 
-<!-- Update Score Form -->
-<form method="post" action="" onsubmit="return updateNextParticipantId()">
-    <h1>Update vorige score</h1>
-    <input type="hidden" name="participant_id" value="<?php echo htmlspecialchars($_GET['participant_id']); ?>">
-    <label for="update_oefening_id">Selecteer Oefening:</label>
-    <select name="update_oefening_id">
-        <?php
+    <!-- Update Score Form -->
+    <form method="post" action="" onsubmit="return updateNextParticipantId()">
+        <h1>Update vorige score</h1>
+        <input type="hidden" name="participant_id" value="<?php echo htmlspecialchars($_GET['participant_id']); ?>">
+        <label for="update_oefening_id">Selecteer Oefening:</label>
+        <select name="update_oefening_id">
+            <?php
         // Fetch oefeningen from the database
-        $oefeningQuery = "SELECT id, name FROM oefening";
-        $oefeningResult = $conn->query($oefeningQuery);
+        $participantId = $_GET['participant_id'];
+        $geslachtQuery = "SELECT geslacht FROM deelnemers WHERE id = ? LIMIT 1";
+        $stmt = $conn->prepare($geslachtQuery);
+        $stmt->bind_param("s", $participantId);
+        $stmt->execute();
+        $geslachtResult = $stmt->get_result();
 
+        $row = $geslachtResult->fetch_assoc();
+        $personGeslacht = $row['geslacht'];
+        if ($personGeslacht == "F") {
+        $oefeningQuery = "SELECT id, name FROM oefening WHERE id NOT IN (18,19,20)";
+        $oefeningResult = $conn->query($oefeningQuery);
+        }
+        else {
+            $oefeningQuery = "SELECT id, name FROM oefening WHERE id NOT IN (17)";
+            $oefeningResult = $conn->query($oefeningQuery);
+        }
         if ($oefeningResult && $oefeningResult->num_rows > 0) {
             while ($oefeningRow = $oefeningResult->fetch_assoc()) {
                 echo "<option value='{$oefeningRow['id']}'>{$oefeningRow['name']}</option>";
             }
         }
+        
         ?>
-    </select>
-    <label for="updated_d_points">Updated D Punten:</label>
-    <input type="text" name="updated_d_points" required>
-    <label for="updated_e_points">Updated E Punten:</label>
-    <input type="text" name="updated_e_points" required>
-    <label for="updated_penalty_points">Updated Penalty Punten:</label>
-    <input type="text" name="updated_penalty_points" required>
-    <input type="hidden" name="participant_id" value="<?php echo htmlspecialchars($_GET['participant_id']); ?>">
-    <button type="submit" name="update_score">Update Score</button>
-</form>
+        </select>
+        <label for="updated_d_points">Updated D Punten:</label>
+        <input type="text" name="updated_d_points" required>
+        <label for="updated_e_points">Updated E Punten:</label>
+        <input type="text" name="updated_e_points" required>
+        <label for="updated_penalty_points">Updated Penalty Punten:</label>
+        <input type="text" name="updated_penalty_points" required>
+        <input type="hidden" name="participant_id" value="<?php echo htmlspecialchars($_GET['participant_id']); ?>">
+        <button type="submit" name="update_score">Update Score</button>
+    </form>
 
-<!-- Display Previous Score -->
-<div class="previous-score">
-    <h1>Vorige score</h1>
-    <?php
+    <!-- Display Previous Score -->
+    <div class="previous-score">
+        <h1>Vorige score</h1>
+        <?php
     $previousScore = getPreviousScore($conn, $_GET['participant_id']);
     if (is_array($previousScore)) {
         echo "<p>D Punten: " . htmlspecialchars($previousScore['d_points']) . "</p>";
@@ -256,7 +277,8 @@ if ($maxParticipantIdResult && $maxParticipantIdResult->num_rows > 0) {
         echo "<p>" . htmlspecialchars($previousScore) . "</p>";
     }
     ?>
-</div>
+    </div>
 
 </body>
+
 </html>
