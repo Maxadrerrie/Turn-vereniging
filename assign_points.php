@@ -229,15 +229,26 @@ if ($maxParticipantIdResult && $maxParticipantIdResult->num_rows > 0) {
             <?php
         // Fetch oefeningen from the database
         $participantId = $_GET['participant_id'];
-        $geslachtQuery = "SELECT geslacht FROM deelnemers WHERE id = ? LIMIT 1";
-        $stmt = $conn->prepare($geslachtQuery);
-        $stmt->bind_param("s", $participantId);
-        $stmt->execute();
-        $geslachtResult = $stmt->get_result();
 
-        $row = $geslachtResult->fetch_assoc();
-        $personGeslacht = $row['geslacht'];
-        if ($personGeslacht == "F") {
+        $deelnemersWedstrijdenQuery = "SELECT wedstrijden_id FROM wedstrijden_has_deelnemers WHERE deelnemers_id = ? AND wedstrijden_id = (SELECT MAX(wedstrijden_id) FROM wedstrijden_has_deelnemers WHERE deelnemers_id = ?) LIMIT 1";
+        
+        $stmt = $conn->prepare($deelnemersWedstrijdenQuery);
+        $stmt->bind_param("ss", $participantId, $participantId);
+        $stmt->execute();
+        $stmt->bind_result($wedstrijdenId);
+        $stmt->fetch();
+        $stmt->close();
+        
+        $WedstrijdenQuery = "SELECT `m/f` FROM wedstrijden WHERE id = ? LIMIT 1";
+        $stmt = $conn->prepare($WedstrijdenQuery);
+        $stmt->bind_param("i", $wedstrijdenId);  // Assuming $wedstrijdenId is an integer, use "i" for integer
+        $stmt->execute();
+        $stmt->bind_result($geslacht);
+        $stmt->fetch();
+        $stmt->close();
+
+        
+        if ($geslacht == 2) {
         $oefeningQuery = "SELECT id, name FROM oefening WHERE id NOT IN (18,19,20)";
         $oefeningResult = $conn->query($oefeningQuery);
         }
@@ -245,6 +256,7 @@ if ($maxParticipantIdResult && $maxParticipantIdResult->num_rows > 0) {
             $oefeningQuery = "SELECT id, name FROM oefening WHERE id NOT IN (17)";
             $oefeningResult = $conn->query($oefeningQuery);
         }
+
         if ($oefeningResult && $oefeningResult->num_rows > 0) {
             while ($oefeningRow = $oefeningResult->fetch_assoc()) {
                 echo "<option value='{$oefeningRow['id']}'>{$oefeningRow['name']}</option>";
