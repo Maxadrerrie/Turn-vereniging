@@ -31,7 +31,6 @@ function getAllScores($conn) {
     return $scores;
 }
 
-
 $scores = getAllScores($conn);
 ?>
 
@@ -40,6 +39,9 @@ $scores = getAllScores($conn);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="refresh" content="30">
+
+    <!-- <meta http-equiv="refresh" content="3"> -->
     <title>Scores</title>
     <style>
         body {
@@ -81,31 +83,7 @@ $scores = getAllScores($conn);
 
 <h1>Scores</h1>
 
-<!-- General scoreboard screen -->
-<div id="scoreboard-container" class="score-container">
-    <h2>Algemeen Scorebord</h2>
-
-    <table>
-        <tr>
-            <th>Naam</th>
-            <th>D Punten</th>
-            <th>E Punten</th>
-            <th>Penalty Punten</th>
-            <th>Totaal Aantal Punten</th>
-        </tr>
-        <?php foreach ($scores as $score) : ?>
-            <tr>
-                <td><?php echo $score['name']; ?></td>
-                <td><?php echo $score['d_points']; ?></td>
-                <td><?php echo $score['e_points']; ?></td>
-                <td><?php echo $score['penalty_points']; ?></td>
-                <td><?php echo $score['total_points']; ?></td>
-            </tr>
-        <?php endforeach; ?>
-    </table>
-</div>
-
-<!-- Most recent score screen -->
+<!-- Meest recente score scherm -->
 <div id="recent-score-container" class="score-container">
     <h2>Meest recente score</h2>
     <?php if (!empty($scores)) : ?>
@@ -132,16 +110,47 @@ $scores = getAllScores($conn);
         <p>Geen scores beschikbaar.</p>
     <?php endif; ?>
 </div>
+
+<!-- Algemeen scorebord scherm -->
+<div id="scoreboard-container" class="score-container">
+    <h2>Algemeen Scorebord</h2>
+    <table>
+        <tr>
+            <th>Naam</th>
+            <th>D Punten</th>
+            <th>E Punten</th>
+            <th>Penalty Punten</th>
+            <th>Totaal Aantal Punten</th>
+        </tr>
+        <?php foreach ($scores as $score) : ?>
+            <tr>
+                <td><?php echo $score['name']; ?></td>
+                <td><?php echo $score['d_points']; ?></td>
+                <td><?php echo $score['e_points']; ?></td>
+                <td><?php echo $score['penalty_points']; ?></td>
+                <td><?php echo $score['total_points']; ?></td>
+            </tr>
+        <?php endforeach; ?>
+    </table>
+</div>
+
 <script>
-    // Toggle between recent score and general scoreboard every 15 seconds
-    setInterval(function() {
-        document.getElementById('recent-score-container').style.display = 'none';
-        document.getElementById('scoreboard-container').style.display = 'block';
-        setTimeout(function() {
-            document.getElementById('recent-score-container').style.display = 'block';
-            document.getElementById('scoreboard-container').style.display = 'none';
-        }, 1500); // Show recent score for 15 seconds
-    }, 3000); // Toggle every 30 seconds (15 seconds for each screen)
+    // Toon eerst de algemene score en wissel dan naar de meest recente score na 3 seconden
+    document.getElementById('recent-score-container').style.display = 'none';
+    document.getElementById('scoreboard-container').style.display = 'block';
+
+    setTimeout(function () {
+        document.getElementById('recent-score-container').style.display = 'block';
+        document.getElementById('scoreboard-container').style.display = 'none';
+    }, 3000);
+
+    // Wissel elke 6 seconden (3 seconden voor elk scherm)
+    setInterval(function () {
+        document.getElementById('recent-score-container').style.display =
+            document.getElementById('recent-score-container').style.display === 'none' ? 'block' : 'none';
+        document.getElementById('scoreboard-container').style.display =
+            document.getElementById('scoreboard-container').style.display === 'none' ? 'block' : 'none';
+    }, 3000);
 </script>
 
 </body>
