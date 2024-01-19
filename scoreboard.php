@@ -11,22 +11,48 @@ if ($conn->connect_error) {
 }
 
 function getAllScores($conn) {
-    $query = "SELECT deelnemers.name, points.d_points, points.e_points, points.penalty_points, 
-                     (points.d_points + points.e_points - points.penalty_points) as total_points
-              FROM deelnemers
-              JOIN points ON deelnemers.id = points.deelnemers_id
-              ORDER BY total_points DESC";
+    // Query voor recente score
+    $queryRecent = "SELECT deelnemers.name, 
+                          points.d_points,
+                          points.e_points,
+                          points.penalty_points,
+                          points.d_points + points.e_points - points.penalty_points as total_points
+                   FROM deelnemers
+                   JOIN points ON deelnemers.id = points.deelnemers_id
+                   ORDER BY points.oefening_id DESC  -- Vervang 'oefening_id' met de juiste kolomnaam
+                   LIMIT 1";
 
-    $result = $conn->query($query);
+    $resultRecent = $conn->query($queryRecent);
 
-    if ($result === FALSE) {
+    if ($resultRecent === FALSE) {
+        die("Error in query: " . $conn->error);
+    }
+
+    $recentScore = $resultRecent->fetch_assoc();
+
+    // Query voor totale scores per deelnemer
+    $queryAll = "SELECT deelnemers.id, deelnemers.name, 
+                         SUM(points.d_points) as total_d_points,
+                         SUM(points.e_points) as total_e_points,
+                         SUM(points.penalty_points) as total_penalty_points,
+                         SUM(points.d_points + points.e_points - points.penalty_points) as total_points
+                  FROM deelnemers
+                  JOIN points ON deelnemers.id = points.deelnemers_id
+                  GROUP BY deelnemers.id
+                  ORDER BY total_points DESC";
+
+    $resultAll = $conn->query($queryAll);
+
+    if ($resultAll === FALSE) {
         die("Error in query: " . $conn->error);
     }
 
     $scores = array();
-    while ($row = $result->fetch_assoc()) {
+    while ($row = $resultAll->fetch_assoc()) {
         $scores[] = $row;
     }
+
+    $scores['recent'] = $recentScore;
 
     return $scores;
 }
@@ -41,7 +67,6 @@ $scores = getAllScores($conn);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="refresh" content="30">
 
-    <!-- <meta http-equiv="refresh" content="3"> -->
     <title>Scores</title>
     <style>
         body {
@@ -76,7 +101,6 @@ $scores = getAllScores($conn);
         .score-container {
             display: none;
         }
-
     </style>
 </head>
 <body>
@@ -86,7 +110,7 @@ $scores = getAllScores($conn);
 <!-- Meest recente score scherm -->
 <div id="recent-score-container" class="score-container">
     <h2>Meest recente score</h2>
-    <?php if (!empty($scores)) : ?>
+    <?php if (!empty($scores['recent'])) : ?>
         <table>
             <tr>
                 <th>Naam</th>
@@ -96,7 +120,7 @@ $scores = getAllScores($conn);
                 <th>Totaal Aantal Punten</th>
             </tr>
             <?php
-            $recentScore = $scores[0];
+            $recentScore = $scores['recent'];
             echo "<tr>";
             echo "<td>{$recentScore['name']}</td>";
             echo "<td>{$recentScore['d_points']}</td>";
@@ -122,15 +146,23 @@ $scores = getAllScores($conn);
             <th>Penalty Punten</th>
             <th>Totaal Aantal Punten</th>
         </tr>
-        <?php foreach ($scores as $score) : ?>
-            <tr>
-                <td><?php echo $score['name']; ?></td>
-                <td><?php echo $score['d_points']; ?></td>
-                <td><?php echo $score['e_points']; ?></td>
-                <td><?php echo $score['penalty_points']; ?></td>
-                <td><?php echo $score['total_points']; ?></td>
-            </tr>
-        <?php endforeach; ?>
+        <?php
+        $uniqueIds = array();
+        foreach ($scores as $score) :
+            if (is_array($score) && array_key_exists('id', $score) && !in_array($score['id'], $uniqueIds)) :
+                $uniqueIds[] = $score['id'];
+        ?>
+                <tr>
+                    <td><?php echo $score['name']; ?></td>
+                    <td><?php echo isset($score['total_d_points']) ? $score['total_d_points'] : ''; ?></td>
+                    <td><?php echo isset($score['total_e_points']) ? $score['total_e_points'] : ''; ?></td>
+                    <td><?php echo isset($score['total_penalty_points']) ? $score['total_penalty_points'] : ''; ?></td>
+                    <td><?php echo isset($score['total_points']) ? $score['total_points'] : ''; ?></td>
+                </tr>
+        <?php
+            endif;
+        endforeach;
+        ?>
     </table>
 </div>
 

@@ -47,21 +47,66 @@ $competitionsResult = $conn->query("SELECT * FROM wedstrijden");
         form {
             margin-bottom: 20px;
         }
+
+        #filter-wedstrijd {
+            width: 25%;
+            text-align: center;
+            margin-left: auto;
+            margin-right: auto;
+            padding: 20px;
+        }
+
+        /* /* Apply styles to the filter box container / */
+        .filter-box {
+        width: 300px;
+        margin: 20px;
+        }
+
+/* / Style the input field / */
+        .filter-input {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 10px;
+        box-sizing: border-box;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        outline: none;
+        }
+
+/* / Style the filter button / */
+        .filter-button {
+        width: 100%;
+        padding: 10px;
+        background-color: #4caf50;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        outline: none;
+        }
+
+/* / Add hover effect for the button / */
+        .filter-button:hover {
+        background-color: #45a049;
+        }
+
     </style>
 </head>
 <body>
 
+<div id="filter-wedstrijd">
 <form method="post" action="">
     <label for="competition">Selecteer wedstrijd:</label>
-    <select name="competition" id="competition">
+    <select class="filter-input" name="competition" id="competition">
         <option value="">Alle Wedstrijden</option>
         <?php while ($competition = $competitionsResult->fetch_assoc()) : ?>
             <option value="<?= $competition['id'] ?>"><?= $competition['Naam'] ?></option>
         <?php endwhile; ?>
     </select>
 
-    <button type="submit" name="filter">Filter</button>
+    <button class="filter-button" type="submit" name="filter">Filter</button>
 </form>
+</div>
 
 <table>
     <tr>

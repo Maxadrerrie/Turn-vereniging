@@ -275,21 +275,6 @@ if ($maxParticipantIdResult && $maxParticipantIdResult->num_rows > 0) {
         <button type="submit" name="update_score">Update Score</button>
     </form>
 
-    <!-- Display Previous Score -->
-    <div class="previous-score">
-        <h1>Vorige score</h1>
-        <?php
-    $previousScore = getPreviousScore($conn, $_GET['participant_id']);
-    if (is_array($previousScore)) {
-        echo "<p>D Punten: " . htmlspecialchars($previousScore['d_points']) . "</p>";
-        echo "<p>E Punten: " . htmlspecialchars($previousScore['e_points']) . "</p>";
-        echo "<p>Penalty Punten: " . htmlspecialchars($previousScore['penalty_points']) . "</p>";
-        echo "<p>Totaal Aantal Punten: " . ($previousScore['d_points'] + $previousScore['e_points'] - $previousScore['penalty_points']) . "</p>";
-    } else {
-        echo "<p>" . htmlspecialchars($previousScore) . "</p>";
-    }
-    ?>
-    </div>
 
 </body>
 
