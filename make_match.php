@@ -9,7 +9,8 @@ $conn = new mysqli($servername, $username, $password, $dbname);
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
-function makeMatch($conn,$name, $gender) {
+
+function makeMatch($conn, $name, $gender) {
     $query = "INSERT INTO `wedstrijden`(`Naam`, `m/f`) VALUES ('" . $name . "','" . $gender . "')";
     $result = $conn->query($query);
 
@@ -17,7 +18,6 @@ function makeMatch($conn,$name, $gender) {
         die("Error in query: " . $conn->error);
     }
 
-// Assuming you want to retrieve the inserted data
     $selectQuery = "SELECT * FROM `wedstrijden` ORDER BY `id` DESC LIMIT 1";
     $selectResult = $conn->query($selectQuery);
 
@@ -33,10 +33,12 @@ function makeMatch($conn,$name, $gender) {
 
     return $scores;
 }
+
 function makeMatchHasPlayers($conn, $wedstrijd_id, $deelnemers_id) {
     $query = "INSERT INTO `wedstrijden_has_deelnemers`(`wedstrijden_id`, `deelnemers_id`) VALUES ('" . $wedstrijd_id . "','" . $deelnemers_id . "')";
     $result = $conn->query($query);
 }
+
 function getAllUsers($conn, $geslacht = null) {
     if ($geslacht !== "f" && $geslacht !== "m") {
         $query = "SELECT * FROM deelnemers;";
@@ -58,15 +60,11 @@ function getAllUsers($conn, $geslacht = null) {
     return $scores;
 }
 
-
 if (isset($_POST['create'])) {
-    // Get the selected checkboxes values
     $selectedCheckboxes = isset($_POST['selectedCheckboxes']) ? json_decode($_POST['selectedCheckboxes'], true) : array();
-
-    // Dump the selected checkboxes values
     var_dump($selectedCheckboxes[0]);
 
-    $wedstrijd_id = makeMatch($conn, $_POST['title'],$_POST['gender'])[0]['id'];
+    $wedstrijd_id = makeMatch($conn, $_POST['title'], $_POST['gender'])[0]['id'];
 
     foreach ($selectedCheckboxes as $boxes) {
         makeMatchHasPlayers($conn, $wedstrijd_id, $boxes);
@@ -79,8 +77,10 @@ if (isset($_GET['gender'])) {
     $deelnemers = getAllUsers($conn);
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -100,7 +100,8 @@ if (isset($_GET['gender'])) {
             margin-top: 20px;
         }
 
-        th, td {
+        th,
+        td {
             border: 1px solid #ddd;
             padding: 8px;
             text-align: left;
@@ -111,7 +112,8 @@ if (isset($_GET['gender'])) {
             color: white;
         }
 
-        h1, h2 {
+        h1,
+        h2 {
             text-align: center;
             color: #333333;
         }
@@ -121,83 +123,137 @@ if (isset($_GET['gender'])) {
             background-color: #f4f4f4;
         }
 
+        /* Style for the filter form */
+        form[name="filter"] {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        /* Style for the filter select element */
+        select[name="gender"] {
+            padding: 8px;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+
+        /* Style for the filter button */
+        input[type="submit"][value="Filteren"] {
+            padding: 8px 12px;
+            font-size: 16px;
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        /* Style for the create match form */
+        form[name="create"] {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        /* Style for the input elements in the create match form */
+        input[type="text"],
+        select[name="gender"],
+        input[type="submit"][value="aanmaken"] {
+            padding: 8px;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+
+        /* Style for the "Alles" checkbox label */
+        th input[type="checkbox"] {
+            margin-right: 5px;
+        }
+
+        /* Style for the create match button */
+        input[type="submit"][name="create"] {
+            padding: 8px 12px;
+            font-size: 16px;
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
     </style>
 </head>
+
 <body>
     <h1>Deelnemer(s)</h1>
-<!-- General scoreboard screen -->
     <div id="scoreboard-container" class="score-container">
         <h2>Algemeen Scorebord</h2>
         <form method="post" action="make_match.php" name="create" onsubmit="updateCheckboxValues()">
-            <input type="text" name="title">
+            <input placeholder="Naam van de wedstrijd" type="text" name="title">
             <select name="gender">
                 <option value="null">Kies een geslacht</option>
                 <option value="1">Man</option>
                 <option value="2">Vrouw</option>
+            </select>
             <input type="submit" value="aanmaken" name="create">
             <input type="hidden" name="selectedCheckboxes" id="selectedCheckboxes" value="">
         </form>
-        <form method="get" action="make_match.php">
+        <!-- <form method="get" action="make_match.php" name="filter">
             <select name="gender">
                 <option value="null">Kies een geslacht</option>
                 <option value="m">Man</option>
                 <option value="f">Vrouw</option>
             </select>
             <input type="submit" value="Filteren">
-        </form>
+        </form> -->
         <table>
             <tr>
-                <th style="width: auto !important; display: flex !important;"><input type="checkbox" onclick="enableAllUsers()"/>Alles</th>
+                <th style="width: auto !important; display: flex !important;"><input type="checkbox" onclick="enableAllUsers()" />Alles</th>
                 <th>Naam</th>
                 <th>Geslacht</th>
             </tr>
             <?php foreach ($deelnemers as $score) : ?>
                 <tr>
                     <td style="width: 20px !important;">
-                        <input type="checkbox" class="checkBoxDeelnemers" name="checkboxes[]" value="<?php echo $score['id'] ?>"/>
+                        <input type="checkbox" class="checkBoxDeelnemers" name="checkboxes[]" value="<?php echo $score['id'] ?>" />
                     </td>
                     <td><?php echo $score['name']; ?></td>
                     <td><?php
-                     if ($score['geslacht'] === "f") {
-                         echo "Vrouw";
-                     } else {
-                         echo "Man";
-                     }
-                         ?></td>
+                        if ($score['geslacht'] === "f") {
+                            echo "Vrouw";
+                        } else {
+                            echo "Man";
+                        }
+                        ?></td>
                 </tr>
             <?php endforeach; ?>
         </table>
     </div>
 </body>
+
 </html>
 <script>
-var count = 0;
+    var count = 0;
 
-function enableAllUsers() {
-    var checkboxes = document.querySelectorAll('.checkBoxDeelnemers');
+    function enableAllUsers() {
+        var checkboxes = document.querySelectorAll('.checkBoxDeelnemers');
 
-    checkboxes.forEach(function (checkbox) {
-        if (count % 2) {
-            checkbox.checked = false;
-            console.log('test');
-        } else {
-            checkbox.checked = true;
-        }
-    });
+        checkboxes.forEach(function (checkbox) {
+            if (count % 2) {
+                checkbox.checked = false;
+                console.log('test');
+            } else {
+                checkbox.checked = true;
+            }
+        });
 
-    count++;
-}
+        count++;
+    }
 
-function updateCheckboxValues() {
-    var checkboxes = document.querySelectorAll('.checkBoxDeelnemers');
-    var selectedValues = [];
+    function updateCheckboxValues() {
+        var checkboxes = document.querySelectorAll('.checkBoxDeelnemers');
+        var selectedValues = [];
 
-    checkboxes.forEach(function (checkbox) {
-        if (checkbox.checked) {
-            selectedValues.push(checkbox.value);
-        }
-    });
+        checkboxes.forEach(function (checkbox) {
+            if (checkbox.checked) {
+                selectedValues.push(checkbox.value);
+            }
+        });
 
-    document.getElementById('selectedCheckboxes').value = JSON.stringify(selectedValues);
-}
+        document.getElementById('selectedCheckboxes').value = JSON.stringify(selectedValues);
+    }
 </script>
