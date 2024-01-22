@@ -1,14 +1,7 @@
 <?php
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "turnen";
 
-$conn = new mysqli($servername, $username, $password, $dbname);
-
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
+include 'header.html';
+include 'connect.php';
 
 function makeMatch($conn, $name, $gender) {
     $query = "INSERT INTO `wedstrijden`(`Naam`, `m/f`) VALUES ('" . $name . "','" . $gender . "')";
@@ -85,97 +78,7 @@ if (isset($_GET['gender'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scores</title>
-    <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            margin: 20px;
-            padding: 20px;
-            background-color: white;
-        }
-
-        table {
-            width: 80%;
-            margin: 0 auto;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        th,
-        td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
-
-        th {
-            background-color: #4caf50;
-            color: white;
-        }
-
-        h1,
-        h2 {
-            text-align: center;
-            color: #333333;
-        }
-
-        .score-container {
-            display: block;
-            background-color: #f4f4f4;
-        }
-
-        /* Style for the filter form */
-        form[name="filter"] {
-            margin-top: 20px;
-            text-align: center;
-        }
-
-        /* Style for the filter select element */
-        select[name="gender"] {
-            padding: 8px;
-            font-size: 16px;
-            margin-right: 10px;
-        }
-
-        /* Style for the filter button */
-        input[type="submit"][value="Filteren"] {
-            padding: 8px 12px;
-            font-size: 16px;
-            background-color: #4caf50;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-
-        /* Style for the create match form */
-        form[name="create"] {
-            margin-top: 20px;
-            text-align: center;
-        }
-
-        /* Style for the input elements in the create match form */
-        input[type="text"],
-        select[name="gender"],
-        input[type="submit"][value="aanmaken"] {
-            padding: 8px;
-            font-size: 16px;
-            margin-right: 10px;
-        }
-
-        /* Style for the "Alles" checkbox label */
-        th input[type="checkbox"] {
-            margin-right: 5px;
-        }
-
-        /* Style for the create match button */
-        input[type="submit"][name="create"] {
-            padding: 8px 12px;
-            font-size: 16px;
-            background-color: #4caf50;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-    </style>
+    <link rel="stylesheet" href="css/make_match.css">
 </head>
 
 <body>

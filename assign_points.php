@@ -1,14 +1,7 @@
 <?php
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "turnen";
 
-$conn = new mysqli($servername, $username, $password, $dbname);
-
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
+include "connect.php";
+include "header.html";
 
 function getPreviousScore($conn, $participantId) {
     $query = "SELECT d_points, e_points, penalty_points FROM points WHERE deelnemers_id = ? LIMIT 1";
@@ -84,93 +77,7 @@ if ($maxParticipantIdResult && $maxParticipantIdResult->num_rows > 0) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Assign Points</title>
-    <style>
-    body {
-        font-family: 'Arial', sans-serif;
-        margin: 20px;
-        background-color: #f4f4f4;
-    }
-
-    form {
-        width: 50%;
-        margin: 0 auto;
-        background-color: #ffffff;
-        padding: 20px;
-        border-radius: 10px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        margin-bottom: 20px;
-    }
-
-    label,
-    input,
-    select {
-        display: block;
-        margin-bottom: 10px;
-    }
-
-    input,
-    select {
-        width: calc(100% - 22px);
-        padding: 8px;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-    }
-
-    button {
-        background-color: #4caf50;
-        color: white;
-        padding: 10px;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-    }
-
-    button:hover {
-        background-color: #45a049;
-    }
-
-    h1,
-    h2 {
-        text-align: center;
-        color: #333333;
-    }
-
-    .previous-score {
-        text-align: center;
-        color: #555555;
-        margin-top: 20px;
-    }
-
-    .previous-score p {
-        margin-bottom: 5px;
-    }
-
-    .update-score-form {
-        width: 50%;
-        margin: 0 auto;
-        background-color: #ffffff;
-        padding: 20px;
-        border-radius: 10px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    }
-
-    .score-doesnt {
-        text-align: center;
-        color: red;
-        margin-top: 20px;
-    }
-
-    .score-exists {
-        text-align: center;
-        color: green;
-        margin-top: 20px;
-    }
-
-    .participant-info {
-        text-align: center;
-        margin-bottom: 20px;
-    }
-    </style>
+    <link rel="stylesheet" href="css/assign_points.css">
 </head>
 
 <body>

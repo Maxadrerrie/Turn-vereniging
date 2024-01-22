@@ -1,14 +1,7 @@
 <?php
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "turnen";
 
-$conn = new mysqli($servername, $username, $password, $dbname);
-
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
+include 'header.html';
+include 'connect.php';
 
 $competitionsResult = $conn->query("SELECT * FROM wedstrijden");
 ?>
@@ -19,78 +12,7 @@ $competitionsResult = $conn->query("SELECT * FROM wedstrijden");
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Jury Page</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-        }
-
-        table, th, td {
-            border: 1px solid #ddd;
-        }
-
-        th, td {
-            padding: 10px;
-            text-align: left;
-        }
-
-        th {
-            background-color: #f2f2f2;
-        }
-
-        form {
-            margin-bottom: 20px;
-        }
-
-        #filter-wedstrijd {
-            width: 25%;
-            text-align: center;
-            margin-left: auto;
-            margin-right: auto;
-            padding: 20px;
-        }
-
-        /* /* Apply styles to the filter box container / */
-        .filter-box {
-        width: 300px;
-        margin: 20px;
-        }
-
-/* / Style the input field / */
-        .filter-input {
-        width: 100%;
-        padding: 10px;
-        margin-bottom: 10px;
-        box-sizing: border-box;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-        outline: none;
-        }
-
-/* / Style the filter button / */
-        .filter-button {
-        width: 100%;
-        padding: 10px;
-        background-color: #4caf50;
-        color: #fff;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        outline: none;
-        }
-
-/* / Add hover effect for the button / */
-        .filter-button:hover {
-        background-color: #45a049;
-        }
-
-    </style>
+    <link rel="stylesheet" href="css/juryinput.css">
 </head>
 <body>
 

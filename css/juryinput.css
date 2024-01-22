@@ -1,0 +1,68 @@
+body {
+    font-family: Arial, sans-serif;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+table, th, td {
+    border: 1px solid #ddd;
+}
+
+th, td {
+    padding: 10px;
+    text-align: left;
+}
+
+th {
+    background-color: #f2f2f2;
+}
+
+form {
+    margin-bottom: 20px;
+}
+
+#filter-wedstrijd {
+    width: 25%;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 20px;
+}
+
+/* /* Apply styles to the filter box container / */
+.filter-box {
+width: 300px;
+margin: 20px;
+}
+
+/* / Style the input field / */
+.filter-input {
+width: 100%;
+padding: 10px;
+margin-bottom: 10px;
+box-sizing: border-box;
+border: 1px solid #ccc;
+border-radius: 5px;
+outline: none;
+}
+
+/* / Style the filter button / */
+.filter-button {
+width: 100%;
+padding: 10px;
+background-color: #4caf50;
+color: #fff;
+border: none;
+border-radius: 5px;
+cursor: pointer;
+outline: none;
+}
+
+/* / Add hover effect for the button / */
+.filter-button:hover {
+background-color: #45a049;
+}

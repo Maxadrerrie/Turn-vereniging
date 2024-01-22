@@ -1,25 +1,20 @@
 <?php
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "turnen";
 
-$conn = new mysqli($servername, $username, $password, $dbname);
-
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
+include 'header.html';
+include 'connect.php';
 
 function getAllScores($conn) {
-    // Query voor recente score
+    // Query voor recente score met oefening
     $queryRecent = "SELECT deelnemers.name, 
                           points.d_points,
                           points.e_points,
                           points.penalty_points,
+                          oefening.name as oefening_name,
                           points.d_points + points.e_points - points.penalty_points as total_points
                    FROM deelnemers
                    JOIN points ON deelnemers.id = points.deelnemers_id
-                   ORDER BY points.oefening_id DESC  -- Vervang 'oefening_id' met de juiste kolomnaam
+                   JOIN oefening ON points.oefening_id = oefening.id
+                   ORDER BY points.oefening_id DESC
                    LIMIT 1";
 
     $resultRecent = $conn->query($queryRecent);
@@ -66,41 +61,10 @@ $scores = getAllScores($conn);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="refresh" content="30">
+    <link rel="stylesheet" href="css/scoreboard.css">
 
     <title>Scores</title>
-    <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            margin: 20px;
-            background-color: #f4f4f4;
-        }
-
-        table {
-            width: 80%;
-            margin: 0 auto;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
-
-        th {
-            background-color: #4caf50;
-            color: white;
-        }
-
-        h1, h2 {
-            text-align: center;
-            color: #333333;
-        }
-
-        .score-container {
-            display: none;
-        }
+   
     </style>
 </head>
 <body>
@@ -117,6 +81,7 @@ $scores = getAllScores($conn);
                 <th>D Punten</th>
                 <th>E Punten</th>
                 <th>Penalty Punten</th>
+                <th>Oefening</th>
                 <th>Totaal Aantal Punten</th>
             </tr>
             <?php
@@ -126,6 +91,7 @@ $scores = getAllScores($conn);
             echo "<td>{$recentScore['d_points']}</td>";
             echo "<td>{$recentScore['e_points']}</td>";
             echo "<td>{$recentScore['penalty_points']}</td>";
+            echo "<td>{$recentScore['oefening_name']}</td>";
             echo "<td>{$recentScore['total_points']}</td>";
             echo "</tr>";
             ?>
