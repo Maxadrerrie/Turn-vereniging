@@ -55,7 +55,6 @@ function getAllUsers($conn, $geslacht = null) {
 
 if (isset($_POST['create'])) {
     $selectedCheckboxes = isset($_POST['selectedCheckboxes']) ? json_decode($_POST['selectedCheckboxes'], true) : array();
-    var_dump($selectedCheckboxes[0]);
 
     $wedstrijd_id = makeMatch($conn, $_POST['title'], $_POST['gender'])[0]['id'];
 
